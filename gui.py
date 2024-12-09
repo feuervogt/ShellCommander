@@ -25,8 +25,7 @@ class ShellCommanderApp(QMainWindow):
         """
         Initialisiert die Hauptbenutzeroberfläche.
         """
-        # Hauptfenster konfigurieren
-        self.setWindowTitle(f"{APP_NAME} v{VERSION}")
+        # Hauptfenster konfigurierengit 
         self.setGeometry(100, 100, 1024, 768)
 
         # Zentrales Widget und Hauptlayout erstellen
