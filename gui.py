@@ -2,12 +2,15 @@ import os
 import json
 import subprocess
 from PyQt5.QtWidgets import (
-    QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
+    QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox, QPlainTextEdit,
     QTableWidget, QTableWidgetItem, QHBoxLayout, QGridLayout, QFrame, QVBoxLayout, QMenu, QAction
 )
 from PyQt5.QtCore import Qt
+#from database_manager import DatabaseManager #Import der Datenbanklogik
+from datetime import datetime
 
-APP_NAME = "ShellCommander"
+
+APP_NAME = "ShellCommander © 2024 feuervogt"
 VERSION = "0.2.7"
 
 class ShellCommanderApp(QMainWindow):
@@ -37,10 +40,9 @@ class ShellCommanderApp(QMainWindow):
             QMainWindow {
                 background: qlineargradient(
                     x1: 0, y1: 0, x2: 0, y2: 1,
-                    stop: 0 #d35400, /* Orange am Startpunkt */
-                    stop: 0.6 #d35400, /* Übergang beginnt bei 60% Höhe */
-                    stop: 0.6 #004d40, /* Übergang endet bei 60% Höhe */
-                    stop: 1 #004d40  /* Blaugrün endet unten */
+                    stop: 0 #5c5c5c, /* Orange am Startpunkt */
+                    stop: 0.6 #c4c4c4, /* Übergang beginnt bei 60% Höhe */
+                    stop: 1 #d7d7d7  /* Blaugrün endet unten */
                 );
             }
         """)
@@ -63,12 +65,94 @@ class ShellCommanderApp(QMainWindow):
         self.script_table.customContextMenuRequested.connect(self.context_menu)
         main_layout.addWidget(self.script_table)  # Tabelle zum Layout hinzufügen
 
+        # Log-Bereich 
+        log_layout = QHBoxLayout()
+        self.log_text = QPlainTextEdit()
+        self.log_text.setReadOnly(True)
+        self.log_text.setMaximumHeight(150)
+        log_layout.addWidget(self.log_text)
+
+        clear_log_button = QPushButton("Clear Log", self)
+        clear_log_button.clicked.connect(self.clear_log)
+        clear_log_button.setFixedWidth(100)  # Fixiere die Breite des Buttons
+        clear_log_button.setMaximumHeight(150)  # Gleiche Höhe wie das Logfenster
+        
+        clear_log_button.setStyleSheet("""
+            QPushButton {
+                background-color: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #d7d7d7, /* Helles Silber */
+                    stop: 0.5 #c4c4c4, /* Mittelgrau */
+                    stop: 1 #a6a6a6  /* Dunkleres Silber */
+                );
+                color: black; /* Schwarzer Text */
+                border: 1px solid #6e6e6e; /* Dunkler Rand */
+                border-radius: 5px; /* Abgerundete Ecken */
+                padding: 5px; /* Innenabstand */
+                font-size: 14px; /* Schriftgröße */
+                font-weight: bold; /* Fettere Schrift */
+                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Leichter 3D-Schatten */
+            }
+            QPushButton:hover {
+                background-color: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #e6e6e6, /* Heller bei Hover */
+                    stop: 0.5 #dcdcdc,
+                    stop: 1 #c8c8c8
+                );
+            }
+            QPushButton:pressed {
+                background-color: qlineargradient(
+                    x1: 0, y1: 0, x2: 0, y2: 1,
+                    stop: 0 #c4c4c4, /* Dunkler bei Klick */
+                    stop: 0.5 #a6a6a6,
+                    stop: 1 #8a8a8a
+                );
+                border: 1px solid #4a4a4a; /* Dunklerer Rand */
+            }
+        """)
+        
+        log_layout.addWidget(clear_log_button)
+        
+
+        main_layout.addLayout(log_layout)
+        
         # Bereich für Kacheln
         tile_layout = QGridLayout()  # Rasterlayout für die Kacheln
         for i in range(20):  # 20 Kacheln erzeugen
             tile = QFrame()  # Einzelne Kachel als Rahmen
             tile.setFrameShape(QFrame.Box)  # Rahmenform als Box
-            tile.setStyleSheet("background-color: lightgray; border: 1px solid black;")  # Stil setzen
+            tile.setStyleSheet("""
+                QFrame {
+                    background-color: qlineargradient(
+                        x1: 0, y1: 0, x2: 0, y2: 1,
+                        stop: 0 #d7d7d7, /* Helles Silber */
+                        stop: 0.5 #c4c4c4, /* Mittelgrau */
+                        stop: 1 #a6a6a6  /* Dunkleres Silber */
+                    );
+                    border: 1px solid #6e6e6e; /* Dunkler Rand */
+                    border-radius: 5px; /* Abgerundete Ecken */
+                    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Leichter 3D-Schatten */
+                }
+                QFrame:hover {
+                    background-color: qlineargradient(
+                        x1: 0, y1: 0, x2: 0, y2: 1,
+                        stop: 0 #e6e6e6, /* Heller bei Hover */
+                        stop: 0.5 #dcdcdc,
+                        stop: 1 #c8c8c8
+                    );
+                }
+                QFrame:pressed {
+                    background-color: qlineargradient(
+                        x1: 0, y1: 0, x2: 0, y2: 1,
+                        stop: 0 #c4c4c4, /* Dunkler bei Klick */
+                        stop: 0.5 #a6a6a6,
+                        stop: 1 #8a8a8a
+                    );
+                    border: 1px solid #4a4a4a; /* Dunklerer Rand */
+                }
+            """)
+            #tile.setStyleSheet("background-color: lightgray; border: 1px solid black;")  # Stil setzen
 
             # Beschriftung für die Kachel
             tile_layout_inner = QVBoxLayout()  # Inneres Layout für die Kachel
@@ -214,16 +298,26 @@ class ShellCommanderApp(QMainWindow):
         script_name, script_path = self.script_list[selected_row]
         try:
             result = subprocess.run(["powershell", "-File", script_path], capture_output=True, text=True)
-            output = result.stdout
-            error = result.stderr
-
             if result.returncode == 0:
-                QMessageBox.information(self, "Script erfolgreich", f"Das Script wurde ausgeführt:\n\n{output}")
+                self.log_message(f"Skript '{script_name}' erfolgreich ausgeführt.")
             else:
-                QMessageBox.critical(self, "Fehler beim Ausführen", f"Das Script konnte nicht ausgeführt werden:\n\n{error}")
+                self.log_message(f"Skript '{script_name}' fehlgeschlagen. Fehler: {result.stderr.strip()}")
         except Exception as e:
-            QMessageBox.critical(self, "Fehler", f"Ein Fehler ist aufgetreten:\n{e}")
+            self.log_message(f"Fehler beim Ausführen von '{script_name}': {e}")
 
+    def log_message(self, message):
+        """
+        Fügt eine neue Nachricht ins Log hinzu.
+        """
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.log_text.appendPlainText(f"[{timestamp}] {message}")
+
+    def clear_log(self):
+        """
+        Löscht das Log.
+        """
+        self.log_text.clear()    
+    
     def show_about(self):
         """
         Zeigt Informationen über die Anwendung an.
