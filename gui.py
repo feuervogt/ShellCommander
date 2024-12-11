@@ -6,8 +6,9 @@ from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QHBoxLayout, QGridLayout, QFrame, QVBoxLayout, QMenu, QAction
 )
 from PyQt5.QtCore import Qt
-#from database_manager import DatabaseManager #Import der Datenbanklogik
+#from database_manager import DatabaseManager # Import der Datenbanklogik
 from datetime import datetime
+from ldap_query import run_ldap_query # Import der LDAP-Funktion
 
 
 APP_NAME = "ShellCommander © 2024 feuervogt"
@@ -25,7 +26,8 @@ class ShellCommanderApp(QMainWindow):
         """
         Initialisiert die Hauptbenutzeroberfläche.
         """
-        # Hauptfenster konfigurierengit 
+        # Hauptfenster konfigurieren
+        self.setWindowTitle(f"{APP_NAME} v{VERSION}")
         self.setGeometry(100, 100, 1024, 768)
 
         # Zentrales Widget und Hauptlayout erstellen
@@ -159,6 +161,10 @@ class ShellCommanderApp(QMainWindow):
             tile_label.setAlignment(Qt.AlignCenter)  # Text zentrieren
             tile_layout_inner.addWidget(tile_label)  # Label ins Layout einfügen
             tile.setLayout(tile_layout_inner)  # Inneres Layout der Kachel zuweisen
+
+            # ** Klick-Event für Kachel 1 einfügen **
+            if i == 0: #Kachel 1 (Index 0)
+                tile_mousePressEvent = lambda event, index=i:self.handle_tile_click(index) # Klick-Event zuweisen
 
             # Kachel im Rasterlayout platzieren
             tile_layout.addWidget(tile, i // 5, i % 5)  # 4 Zeilen, 5 Spalten

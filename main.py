@@ -1,11 +1,15 @@
 import sys
 from PyQt5.QtWidgets import QApplication
 from gui import ShellCommanderApp
+from controller import Controller
 
 def main():
-    """
-    Startet die ShellCommander-Anwendung.
-    """
+    # Initialisiere COntroller und Datenbank
+    db_file = "scripts.db"
+    controller = Controller(db_file)
+    controller.initialize_database()
+    
+    #    Startet die ShellCommander-Anwendung.
     app = QApplication(sys.argv)
     main_window = ShellCommanderApp()
     main_window.show()
